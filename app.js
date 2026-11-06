@@ -8,6 +8,50 @@
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) { /* 저장이 막혀도 문제는 풀 수 있다 */ }
   }
 
+  // 고정된 상단바 높이만큼 링크 이동 위치를 내린다.
+  var stick = document.getElementById('stick');
+  function setStick() {
+    document.documentElement.style.setProperty('--sh', stick.offsetHeight + 'px');
+  }
+  setStick();
+  window.addEventListener('resize', setStick);
+
+  // 지금 사용 중인 인원: 브라우저마다 임의 번호로 30초마다 신호를 보내고, 70초 안에 신호를 보낸 수를 센다.
+  (function online() {
+    var URL_ = 'https://gwangsu-on-default-rtdb.firebaseio.com/years/2026/ox26Online';
+    var LIVE = 70000, OLD = 600000, EVERY = 30000;
+    var box = document.getElementById('online');
+    var num = document.getElementById('onlineN');
+    var id;
+    try {
+      id = localStorage.getItem('ox26-id');
+      if (!id) { id = newId(); localStorage.setItem('ox26-id', id); }
+    } catch (e) { id = newId(); }
+    function newId() { return 'b' + Math.random().toString(36).slice(2, 12); }
+
+    function beat() {
+      if (document.hidden) return;
+      fetch(URL_ + '/' + id + '.json', { method: 'PUT', body: '{"ts":{".sv":"timestamp"}}' })
+        .then(function (r) { return r.json(); })
+        .then(function (me) {
+          return fetch(URL_ + '.json').then(function (r) { return r.json(); }).then(function (all) {
+            var n = 0;
+            Object.keys(all || {}).forEach(function (k) {
+              var age = me.ts - ((all[k] && all[k].ts) || 0);
+              if (age < LIVE) n++;
+              else if (age > OLD && Math.random() < 0.2) fetch(URL_ + '/' + k + '.json', { method: 'DELETE' });
+            });
+            num.textContent = n;
+            box.hidden = false;
+          });
+        })
+        .catch(function () { box.hidden = true; });
+    }
+    beat();
+    setInterval(beat, EVERY);
+    document.addEventListener('visibilitychange', beat);
+  })();
+
   // 개념 페이지: 문제에서 왔으면 돌아가는 단추를 보여 준다.
   var back = document.getElementById('back');
   if (back) {

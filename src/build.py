@@ -70,7 +70,7 @@ def head(title, desc):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 '''
 
@@ -78,7 +78,8 @@ def head(title, desc):
 def nav(active):
     items = [('index.html', '처음으로'), ('ox.html', 'OX 100문제'), ('concepts.html', '기본 개념')]
     links = ''.join(f'<a href="{h}"{" aria-current=page" if h == active else ""}>{t}</a>' for h, t in items)
-    return f'<header class="top"><div class="wrap topin"><a class="brand" href="index.html">3학년 과학 개념 확인</a><nav>{links}</nav></div></header>'
+    online = '<span class="online" id="online" hidden><i aria-hidden="true"></i>지금 <b id="onlineN">0</b>명<span class="olt"> 사용 중</span></span>'
+    return f'<header class="top"><div class="wrap topin"><a class="brand" href="index.html">3학년 과학 개념 확인</a>{online}<nav>{links}</nav></div></header>'
 
 
 def groups():
@@ -109,7 +110,7 @@ def build_index(total):
                          f'<td>{len(u["concepts"])}</td><td>{u["n"]}<span class="rng">{rng}</span></td></tr>')
     allc = sum(len(u['concepts']) for u in UNITS)
     body = f'''<body>
-{nav('index.html')}
+<div class="stick" id="stick">{nav('index.html')}</div>
 <main class="wrap">
 <section class="hero">
 <h1>기말고사 범위 개념 확인</h1>
@@ -129,7 +130,8 @@ def build_index(total):
 </table></div>
 </section>
 </main>
-<footer class="wrap foot">광수중학교 3학년 과학 · 교과서 쪽수는 2015 개정 과학 3 기준입니다.</footer>
+<footer class="wrap foot">광수중학교 3학년 과학 · 교과서 쪽수는 2015 개정 과학 3 기준입니다. 사용 중인 인원은 이름 없는 임의 번호로만 셉니다.</footer>
+<script src="app.js?v=2"></script>
 </body></html>
 '''
     write('index.html', head('3학년 과학 개념 확인', '생식과 유전, 별과 우주 개념 확인 OX 100문제와 기본 개념') + body)
@@ -159,7 +161,7 @@ def build_ox(total):
 '''
         sec += '</section>'
     body = f'''<body class="oxpage">
-{nav('ox.html')}
+<div class="stick" id="stick">{nav('ox.html')}
 <div class="bar"><div class="wrap barin">
 <div class="score" aria-live="polite"><b id="done">0</b>/{total} 풀이 · 맞힘 <b id="right">0</b></div>
 <div class="filters" role="group" aria-label="문제 거르기">
@@ -168,7 +170,7 @@ def build_ox(total):
 <button type="button" data-f="wrong" aria-pressed="false">틀린 문제</button>
 </div>
 <div class="tools"><button type="button" id="showall" aria-pressed="false">풀이 모두 보기</button><button type="button" id="reset">기록 지우기</button></div>
-</div><div class="meter"><i id="meter"></i></div></div>
+</div><div class="meter"><i id="meter"></i></div></div></div>
 <main class="wrap">
 <h1>개념 확인 OX 100문제</h1>
 <p class="lead">문장이 맞으면 O, 틀리면 X를 누르세요. 푼 기록은 지금 쓰는 기기의 브라우저에만 저장됩니다.</p>
@@ -177,7 +179,7 @@ def build_ox(total):
 {sec}
 </main>
 <footer class="wrap foot">광수중학교 3학년 과학</footer>
-<script src="app.js?v=1"></script>
+<script src="app.js?v=2"></script>
 </body></html>
 '''
     write('ox.html', head('개념 확인 OX 100문제', '생식과 유전, 별과 우주 개념 확인 OX 문제') + body)
@@ -234,7 +236,7 @@ def build_concepts():
             main += f'<p class="rel">이 개념의 OX 문제: {nums}</p></article>'
         main += '</section>'
     body = f'''<body class="kpage">
-{nav('concepts.html')}
+<div class="stick" id="stick">{nav('concepts.html')}</div>
 <div class="wrap klayout">
 <aside class="toc"><details open><summary>목차</summary>{toc}</details></aside>
 <main>
@@ -245,7 +247,7 @@ def build_concepts():
 </main>
 </div>
 <a class="back" id="back" href="ox.html" hidden>문제로 돌아가기</a>
-<script src="app.js?v=1"></script>
+<script src="app.js?v=2"></script>
 </body></html>
 '''
     write('concepts.html', head('기본 개념', '생식과 유전, 별과 우주 교과서 기본 개념 정리') + body)
