@@ -22,12 +22,30 @@
     var LIVE = 70000, OLD = 600000, EVERY = 30000;
     var box = document.getElementById('online');
     var num = document.getElementById('onlineN');
+    var todayBox = document.getElementById('today');
+    var todayNum = document.getElementById('todayN');
+    var VISITS = 'https://gwangsu-on-default-rtdb.firebaseio.com/years/2026/ox26Visits/';
+    var counted = '';
     var id;
     try {
       id = localStorage.getItem('ox26-id');
       if (!id) { id = newId(); localStorage.setItem('ox26-id', id); }
     } catch (e) { id = newId(); }
     function newId() { return 'b' + Math.random().toString(36).slice(2, 12); }
+
+    // 오늘 방문자: 한국 날짜별로 브라우저 번호를 한 번씩 남기고 그 수를 센다.
+    function visits(now) {
+      var day = new Date(now + 9 * 3600000).toISOString().slice(0, 10);
+      var url = VISITS + day;
+      var mark = counted === day ? Promise.resolve() :
+        fetch(url + '/' + id + '.json', { method: 'PUT', body: 'true' }).then(function () { counted = day; });
+      return mark.then(function () {
+        return fetch(url + '.json?shallow=true');
+      }).then(function (r) { return r.json(); }).then(function (all) {
+        todayNum.textContent = Object.keys(all || {}).length;
+        todayBox.hidden = false;
+      });
+    }
 
     function beat() {
       if (document.hidden) return;
@@ -43,6 +61,7 @@
             });
             num.textContent = n;
             box.hidden = false;
+            return visits(me.ts);
           });
         })
         .catch(function () { box.hidden = true; });

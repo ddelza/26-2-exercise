@@ -70,7 +70,7 @@ def head(title, desc):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 '''
 
@@ -78,7 +78,9 @@ def head(title, desc):
 def nav(active):
     items = [('index.html', '처음으로'), ('ox.html', 'OX 100문제'), ('concepts.html', '기본 개념')]
     links = ''.join(f'<a href="{h}"{" aria-current=page" if h == active else ""}>{t}</a>' for h, t in items)
-    online = '<span class="online" id="online" hidden><i aria-hidden="true"></i>지금 <b id="onlineN">0</b>명<span class="olt"> 사용 중</span></span>'
+    online = ('<span class="online" id="online" hidden><i aria-hidden="true"></i><span class="oltxt">'
+              '<span>지금 <b id="onlineN">0</b>명<span class="olt"> 사용 중</span></span>'
+              '<span id="today" hidden>오늘 <b id="todayN">0</b>명<span class="olt"> 방문</span></span></span></span>')
     return f'<header class="top"><div class="wrap topin"><a class="brand" href="index.html">3학년 과학 개념 확인</a>{online}<nav>{links}</nav></div></header>'
 
 
@@ -130,8 +132,8 @@ def build_index(total):
 </table></div>
 </section>
 </main>
-<footer class="wrap foot">광수중학교 3학년 과학 · 교과서 쪽수는 2015 개정 과학 3 기준입니다. 사용 중인 인원은 이름 없는 임의 번호로만 셉니다.</footer>
-<script src="app.js?v=2"></script>
+<footer class="wrap foot">광수중학교 3학년 과학 · 교과서 쪽수는 2015 개정 과학 3 기준입니다. 사용 중 인원과 방문자 수는 이름 없는 임의 번호로만 셉니다.</footer>
+<script src="app.js?v=3"></script>
 </body></html>
 '''
     write('index.html', head('3학년 과학 개념 확인', '생식과 유전, 별과 우주 개념 확인 OX 100문제와 기본 개념') + body)
@@ -179,7 +181,7 @@ def build_ox(total):
 {sec}
 </main>
 <footer class="wrap foot">광수중학교 3학년 과학</footer>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body></html>
 '''
     write('ox.html', head('개념 확인 OX 100문제', '생식과 유전, 별과 우주 개념 확인 OX 문제') + body)
@@ -247,7 +249,7 @@ def build_concepts():
 </main>
 </div>
 <a class="back" id="back" href="ox.html" hidden>문제로 돌아가기</a>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body></html>
 '''
     write('concepts.html', head('기본 개념', '생식과 유전, 별과 우주 교과서 기본 개념 정리') + body)
