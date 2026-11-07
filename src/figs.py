@@ -6,8 +6,8 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else '.'
 FONT = "'Malgun Gothic','Noto Sans KR','Noto Sans CJK KR','Apple SD Gothic Neo',sans-serif"
 INK = '#1f2a37'
 MUTE = '#5b6776'
-B = '#2f6fd0'   # 아버지 쪽 염색체
-R = '#e0762b'   # 어머니 쪽 염색체
+B = '#2f6fd0'   # 긴 상동 염색체 쌍 (쌍끼리 같은 색)
+R = '#e0762b'   # 짧은 상동 염색체 쌍 (쌍끼리 같은 색)
 CELL = '#fdf6e3'
 CELLS = '#c9b98c'
 PANEL = '#f6f8fb'
@@ -29,11 +29,24 @@ def bar(x, y, h, color, angle=0, w=8):
             f'transform="rotate({angle} {x} {y})"/>')
 
 
-def xch(x, y, h, color, rot=0):
-    """두 가닥의 염색 분체로 이루어진 염색체"""
-    return (f'<g transform="rotate({rot} {x} {y})">'
-            + bar(x - 3, y, h, color, 12) + bar(x + 3, y, h, color, -12)
-            + f'<circle cx="{x}" cy="{y}" r="3.2" fill="{INK}"/></g>')
+def arm(cx, y, half, w, color, ang, top):
+    y0 = y - half if top else y
+    return (f'<rect x="{cx-w/2:.1f}" y="{y0:.1f}" width="{w:.1f}" height="{half:.1f}" rx="{w/2:.1f}" fill="{color}" '
+            f'stroke="{INK}" stroke-width="0.8" transform="rotate({ang} {cx:.1f} {y})"/>')
+
+
+def xch(x, y, h, color, w=None, t=13):
+    """두 가닥의 염색 분체가 가운데에서 붙은 X자 염색체"""
+    w = w or max(6.5, h * 0.2)
+    half, d = h / 2, w * 0.46
+    return (arm(x - d, y, half, w, color, -t, True) + arm(x - d, y, half, w, color, t, False)
+            + arm(x + d, y, half, w, color, t, True) + arm(x + d, y, half, w, color, -t, False))
+
+
+def chromatid(x, y, h, color, side, w=None, t=20):
+    """분리되어 이동하는 염색 분체 한 가닥. side -1은 왼쪽, 1은 오른쪽으로 이동"""
+    w = w or max(6, h * 0.2)
+    return arm(x, y, h / 2, w, color, -side * t, True) + arm(x, y, h / 2, w, color, side * t, False)
 
 
 def cell(x, y, rx, ry=None, dashed=False):
@@ -103,8 +116,7 @@ def fig_chromosome():
     b += cell(105, 130, 72, 68) + nucleus(105, 130, 36) + threads(105, 130, 32)
     b += arrow(205, 150, 236, 150)
     b += panel(240, 10, 190, 280, '분열할 때의 염색체', '두 가닥의|염색 분체')
-    b += bar(318, 130, 130, B, 12, 15) + bar(352, 130, 130, B, -12, 15)
-    b += f'<circle cx="335" cy="130" r="7" fill="{INK}"/>'
+    b += xch(335, 130, 150, B, 24)
     b += t(278, 88, '염색', 14, MUTE) + t(278, 105, '분체', 14, MUTE)
     b += t(394, 88, '염색', 14, MUTE) + t(394, 105, '분체', 14, MUTE)
     b += arrow(435, 150, 466, 150)
@@ -127,7 +139,7 @@ def fig_chromosome():
 # ---- 3. 체세포 분열 ---------------------------------------------------------
 def fig_mitosis():
     W, H = 212, 244
-    names = [('① 분열 전', 'DNA가 복제된다|(염색체는 실처럼 풀어짐)'),
+    names = [('① 간기(분열 전)', 'DNA가 복제된다|(염색체는 실처럼 풀어짐)'),
              ('② 전기', '핵막이 사라지고|막대 모양 염색체가 나타남'),
              ('③ 중기', '염색체가 세포|가운데에 배열'),
              ('④ 후기', '염색 분체가 분리되어|양쪽 끝으로 이동'),
@@ -142,18 +154,18 @@ def fig_mitosis():
         if i == 0:
             b += cell(cx, cy, 68) + nucleus(cx, cy, 36) + threads(cx, cy, 32)
         elif i == 1:
-            b += cell(cx, cy, 68) + nucleus(cx, cy, 44, True)
-            b += xch(cx - 22, cy - 14, 34, B, 20) + xch(cx + 20, cy - 16, 34, R, -24)
-            b += xch(cx - 16, cy + 22, 22, B, -30) + xch(cx + 20, cy + 20, 22, R, 26)
+            b += cell(cx, cy, 68) + nucleus(cx, cy, 46, True)
+            b += xch(cx - 21, cy - 14, 36, B) + xch(cx + 21, cy - 14, 36, B)
+            b += xch(cx - 16, cy + 23, 24, R) + xch(cx + 16, cy + 23, 24, R)
         elif i == 2:
             b += cell(cx, cy, 68)
             b += f'<line x1="{cx}" y1="{cy-62}" x2="{cx}" y2="{cy+62}" stroke="{LINE}" stroke-width="2" stroke-dasharray="5 5"/>'
-            for k, (dy, h, c) in enumerate([(-42, 32, B), (-12, 32, R), (16, 22, B), (40, 22, R)]):
-                b += xch(cx, cy + dy, h, c, 90)
+            for dy, h, c in [(-42, 28, B), (-12, 28, B), (17, 20, R), (41, 20, R)]:
+                b += xch(cx, cy + dy, h, c)
         elif i == 3:
-            b += cell(cx, cy, 78, 62)
-            for dy, h, c in [(-40, 30, B), (-14, 30, R), (14, 20, B), (36, 20, R)]:
-                b += bar(cx - 34, cy + dy, h, c, 90) + bar(cx + 34, cy + dy, h, c, 90)
+            b += cell(cx, cy, 78, 64)
+            for dy, h, c in [(-42, 28, B), (-12, 28, B), (17, 20, R), (41, 20, R)]:
+                b += chromatid(cx - 36, cy + dy, h, c, -1) + chromatid(cx + 36, cy + dy, h, c, 1)
             b += arrow(cx - 8, cy, cx - 22, cy, MUTE, 2) + arrow(cx + 8, cy, cx + 22, cy, MUTE, 2)
         elif i == 4:
             b += (f'<path d="M{cx-4},{cy-48} C{cx-40},{cy-72} {cx-92},{cy-48} {cx-92},{cy} '
@@ -165,25 +177,24 @@ def fig_mitosis():
             for sx in (-1, 1):
                 nx = cx + sx * 50
                 b += nucleus(nx, cy, 30)
-                b += bar(nx - 11, cy - 4, 26, B, 10, 6) + bar(nx + 11, cy - 4, 26, R, -10, 6)
-                b += bar(nx - 6, cy + 13, 16, B, 70, 6) + bar(nx + 8, cy + 14, 16, R, -60, 6)
+                b += bar(nx - 11, cy - 4, 26, B, 10, 6) + bar(nx + 11, cy - 4, 26, B, -10, 6)
+                b += bar(nx - 6, cy + 13, 16, R, 70, 6) + bar(nx + 8, cy + 14, 16, R, -60, 6)
         else:
             for sx in (-1, 1):
                 nx = cx + sx * 50
                 b += cell(nx, cy, 46) + nucleus(nx, cy, 28)
-                b += bar(nx - 10, cy - 4, 26, B, 10, 6) + bar(nx + 10, cy - 4, 26, R, -10, 6)
-                b += bar(nx - 6, cy + 13, 16, B, 70, 6) + bar(nx + 8, cy + 14, 16, R, -60, 6)
+                b += bar(nx - 10, cy - 4, 26, B, 10, 6) + bar(nx + 10, cy - 4, 26, B, -10, 6)
+                b += bar(nx - 6, cy + 13, 16, R, 70, 6) + bar(nx + 8, cy + 14, 16, R, -60, 6)
     return svg(10 + 3 * (W + 12), 2 * (H + 12) + 10, b)
 
 
-# ---- 4. 상동 염색체 ---------------------------------------------------------
+# ---- 4. 상동 염색체 --------------------------------------------------------
 def fig_homolog():
     b = panel(10, 10, 300, 260, '상동 염색체 한 쌍', '모양과 크기가 같고|부모에게서 하나씩 받음')
-    b += xch(95, 118, 100, B) + xch(225, 118, 100, R)
-    b += t(95, 192, '아버지에게서', 14.5, B, weight='700') + t(225, 192, '어머니에게서', 14.5, R, weight='700')
-    b += panel(330, 10, 300, 260, '염색 분체와 다른 점', '염색 분체는 복제로 생겨 정보가 같고|상동 염색체는 서로 다를 수 있음')
-    # 대립유전자 표시
-    b += bar(430, 120, 130, B, 0, 18) + bar(530, 120, 130, R, 0, 18)
+    b += xch(95, 112, 110, B, 18) + xch(225, 112, 110, B, 18)
+    b += t(95, 192, '아버지에게서', 14.5, INK, weight='700') + t(225, 192, '어머니에게서', 14.5, INK, weight='700')
+    b += panel(330, 10, 300, 260, '같은 위치의 대립유전자', '상동 염색체의 같은 위치에|같은 형질의 유전자가 있음')
+    b += bar(430, 120, 130, B, 0, 18) + bar(530, 120, 130, B, 0, 18)
     b += f'<rect x="418" y="86" width="24" height="16" fill="#fff" stroke="{INK}"/>'
     b += f'<rect x="518" y="86" width="24" height="16" fill="#fff" stroke="{INK}"/>'
     b += t(430, 99, 'A', 14, INK, weight='700') + t(530, 99, 'a', 14, INK, weight='700')
@@ -192,70 +203,102 @@ def fig_homolog():
     return svg(640, 280, b)
 
 
+def band(x, y, w, ang=0):
+    return f'<rect x="{x-w/2:.1f}" y="{y-3:.1f}" width="{w:.1f}" height="6" fill="#222" transform="rotate({ang} {x:.1f} {y})"/>'
+
+
+def tagged_x(x, y, h, w, color, genes, t_=13):
+    """X자 염색체의 두 가닥 같은 높이에 유전자를 표시한다. genes: [(높이, 글자)]"""
+    s = xch(x, y, h, color, w, t_)
+    d = w * 0.46
+    tan = math.tan(math.radians(t_))
+    for dy, g in genes:
+        off = d + abs(dy) * tan
+        ang = t_ if dy < 0 else -t_
+        s += band(x - off, y + dy, w * 1.02, ang) + band(x + off, y + dy, w * 1.02, -ang)
+        s += t(x - off - w - 3, y + dy + 7, g, 20, INK, weight='700')
+        s += t(x + off + w + 3, y + dy + 7, g, 20, INK, weight='700')
+    return s
+
+
+def fig_pair():
+    """한 쌍의 상동 염색체와 대립유전자 A, a"""
+    b = tagged_x(120, 112, 170, 22, B, [(-40, 'A')])
+    b += tagged_x(300, 112, 170, 22, B, [(-40, 'a')])
+    b += t(120, 226, '(가)', 19, INK, weight='700') + t(300, 226, '(나)', 19, INK, weight='700')
+    return svg(420, 240, b)
+
+
+def fig_sister():
+    """간기 복제와 상동 염색체의 유전자 구성"""
+    def half(ox, title, genes):
+        s = panel(ox, 10, 335, 268, title)
+        cx, cy = ox + 62, 150
+        s += bar(cx, cy, 170, B, 0, 22)
+        for dy, g in genes:
+            s += band(cx, cy + dy, 22)
+            s += t(cx - 26, cy + dy + 7, g, 20, INK, weight='700')
+        s += arrow(ox + 100, cy, ox + 160, cy)
+        s += t(ox + 128, cy - 26, '간기', 15, INK, weight='700') + t(ox + 128, cy - 8, 'DNA 복제', 13.5, MUTE)
+        s += tagged_x(ox + 246, cy, 190, 22, B, genes)
+        return s
+    b = half(10, '아버지에게서 받은 염색체', [(-58, 'A'), (-26, 'B'), (52, 'd')])
+    b += half(355, '어머니에게서 받은 염색체', [(-58, 'a'), (-26, 'B'), (52, 'D')])
+    b += t(350, 306, '염색 분체끼리: 복제로 생겨서 유전자 구성이 완전히 같다.', 16, INK, weight='700')
+    b += t(350, 332, '상동 염색체끼리: 같은 위치에 같은 형질의 유전자가 있지만, A와 a처럼 다를 수 있다.', 16, INK, weight='700')
+    return svg(700, 346, b)
+
+
 # ---- 5. 감수 분열 -----------------------------------------------------------
-def pair(x, y, h, gap=10, rot=0):
-    return xch(x - gap, y, h, B, rot) + xch(x + gap, y, h, R, rot)
-
-
 def fig_meiosis():
-    b = ''
-    # 윗줄: 감수 1분열
-    b += f'<rect x="10" y="10" width="760" height="262" rx="12" fill="{PANEL}" stroke="{LINE}"/>'
+    b = f'<rect x="10" y="10" width="760" height="262" rx="12" fill="{PANEL}" stroke="{LINE}"/>'
     b += t(30, 38, '감수 1분열: 상동 염색체가 결합했다가 분리된다', 18, INK, 'start', '700')
-    cols = [100, 285, 470, 660]
+    cols = [95, 270, 450, 655]
     labels = [('전기', '상동 염색체가 결합'), ('중기', '결합한 상동 염색체가|가운데에 배열'), ('후기', '상동 염색체가|양쪽으로 분리'), ('결과', '딸세포 2개|염색체 수 절반')]
     cy = 144
     x = cols[0]
-    b += cell(x, cy, 66) + pair(x - 18, cy - 14, 36, 9) + pair(x + 24, cy + 14, 24, 8)
+    b += cell(x, cy, 66) + xch(x - 26, cy - 14, 40, B) + xch(x - 2, cy - 14, 40, B)
+    b += xch(x + 14, cy + 26, 26, R) + xch(x + 32, cy + 26, 26, R)
     x = cols[1]
     b += cell(x, cy, 66)
     b += f'<line x1="{x}" y1="{cy-60}" x2="{x}" y2="{cy+60}" stroke="{LINE}" stroke-width="2" stroke-dasharray="5 5"/>'
-    b += xch(x - 12, cy - 26, 34, B, 90) + xch(x + 12, cy - 26, 34, R, 90)
-    b += xch(x - 12, cy + 24, 22, R, 90) + xch(x + 12, cy + 24, 22, B, 90)
+    b += xch(x - 13, cy - 24, 40, B) + xch(x + 13, cy - 24, 40, B)
+    b += xch(x - 10, cy + 26, 26, R) + xch(x + 10, cy + 26, 26, R)
     x = cols[2]
-    b += cell(x, cy, 76, 62)
-    b += xch(x - 40, cy - 26, 34, B, 90) + xch(x + 40, cy - 26, 34, R, 90)
-    b += xch(x - 40, cy + 24, 22, R, 90) + xch(x + 40, cy + 24, 22, B, 90)
+    b += cell(x, cy, 72, 62)
+    b += xch(x - 40, cy - 24, 40, B) + xch(x + 40, cy - 24, 40, B)
+    b += xch(x - 40, cy + 26, 26, R) + xch(x + 40, cy + 26, 26, R)
     b += arrow(x - 8, cy, x - 22, cy, MUTE, 2) + arrow(x + 8, cy, x + 22, cy, MUTE, 2)
     x = cols[3]
-    b += cell(x - 46, cy, 42) + cell(x + 46, cy, 42)
-    b += xch(x - 56, cy - 2, 34, B) + xch(x - 34, cy + 2, 22, R)
-    b += xch(x + 36, cy - 2, 34, R) + xch(x + 58, cy + 2, 22, B)
+    for nx in (x - 46, x + 46):
+        b += cell(nx, cy, 42) + xch(nx - 11, cy, 40, B) + xch(nx + 14, cy, 26, R)
     for c, (n, note) in zip(cols, labels):
         b += t(c, 66, n, 16, INK, weight='700')
         for i, line in enumerate(note.split('|')):
             b += t(c, 232 + i * 20, line, 14.5, MUTE)
-    for a, c in zip(cols, cols[1:]):
-        b += arrow(a + 72, cy, c - 76, cy)
-    # 아랫줄: 감수 2분열
+    b += arrow(167, cy, 198, cy) + arrow(342, cy, 372, cy) + arrow(528, cy, 561, cy)
     y0 = 284
     b += f'<rect x="10" y="{y0}" width="760" height="262" rx="12" fill="{PANEL}" stroke="{LINE}"/>'
     b += t(30, y0 + 28, '감수 2분열: DNA 복제 없이 염색 분체가 분리된다', 18, INK, 'start', '700')
     cy = y0 + 118
-    x = cols[0]
-    b += cell(x - 38, cy, 36) + cell(x + 38, cy, 36)
-    b += xch(x - 38, cy - 13, 26, B, 90) + xch(x - 38, cy + 13, 18, R, 90)
-    b += xch(x + 38, cy - 13, 26, R, 90) + xch(x + 38, cy + 13, 18, B, 90)
-    x = cols[1]
-    for sx, c1, c2 in ((-1, B, R), (1, R, B)):
-        nx = x + sx * 42
-        b += cell(nx, cy, 40, 38)
-        b += bar(nx - 16, cy - 13, 24, c1, 90, 6) + bar(nx + 16, cy - 13, 24, c1, 90, 6)
-        b += bar(nx - 14, cy + 13, 16, c2, 90, 6) + bar(nx + 14, cy + 13, 16, c2, 90, 6)
-    x = cols[2] + 30
-    k = 0
-    for c1, c2 in ((B, R), (B, R), (R, B), (R, B)):
-        nx = x - 90 + k * 60
+    for nx in (70, 150):
+        b += cell(nx, cy, 37)
+        b += f'<line x1="{nx}" y1="{cy-33}" x2="{nx}" y2="{cy+33}" stroke="{LINE}" stroke-width="2" stroke-dasharray="4 4"/>'
+        b += xch(nx, cy - 12, 30, B) + xch(nx, cy + 17, 20, R)
+    for nx in (300, 388):
+        b += cell(nx, cy, 42, 40)
+        b += chromatid(nx - 19, cy - 12, 28, B, -1) + chromatid(nx + 19, cy - 12, 28, B, 1)
+        b += chromatid(nx - 16, cy + 17, 18, R, -1) + chromatid(nx + 16, cy + 17, 18, R, 1)
+    for nx in (540, 602, 664, 726):
         b += cell(nx, cy, 28)
-        b += bar(nx - 7, cy - 2, 26, c1, 8, 6) + bar(nx + 9, cy + 3, 16, c2, -8, 6)
-        k += 1
-    b += t(cols[0], y0 + 54, '중기', 16, INK, weight='700')
-    b += t(cols[1], y0 + 54, '후기', 16, INK, weight='700')
-    b += t(cols[2] + 30, y0 + 54, '딸세포 4개', 16, INK, weight='700')
-    b += t(cols[0], y0 + 204, '염색체가', 14.5, MUTE) + t(cols[0], y0 + 224, '가운데에 배열', 14.5, MUTE)
-    b += t(cols[1], y0 + 204, '각 염색체의 염색 분체가', 14.5, MUTE) + t(cols[1], y0 + 224, '양쪽으로 분리', 14.5, MUTE)
-    b += t(cols[2] + 30, y0 + 204, '염색체 수가 모세포의 절반인', 14.5, MUTE) + t(cols[2] + 30, y0 + 224, '생식세포(정자 또는 난자)가 된다', 14.5, MUTE)
-    b += arrow(cols[0] + 80, cy, cols[1] - 88, cy) + arrow(cols[1] + 88, cy, cols[2] - 96, cy)
+        b += bar(nx - 7, cy - 2, 26, B, 8, 6) + bar(nx + 9, cy + 3, 16, R, -8, 6)
+    b += t(110, y0 + 54, '중기', 16, INK, weight='700')
+    b += t(344, y0 + 54, '후기', 16, INK, weight='700')
+    b += t(633, y0 + 54, '딸세포 4개', 16, INK, weight='700')
+    b += t(110, y0 + 204, '염색체가', 14.5, MUTE) + t(110, y0 + 224, '가운데에 배열', 14.5, MUTE)
+    b += t(344, y0 + 204, '각 염색체의 염색 분체가', 14.5, MUTE) + t(344, y0 + 224, '양쪽으로 분리', 14.5, MUTE)
+    b += t(633, y0 + 204, '염색체 수가 모세포의 절반인', 14.5, MUTE) + t(633, y0 + 224, '생식세포(정자 또는 난자)가 된다', 14.5, MUTE)
+    b += arrow(194, cy, 250, cy) + arrow(436, cy, 502, cy)
     return svg(780, 556, b)
 
 
@@ -462,7 +505,7 @@ def fig_coin():
 
 FIGS = {
     'agar': fig_agar, 'chromosome': fig_chromosome, 'mitosis': fig_mitosis, 'homolog': fig_homolog,
-    'meiosis': fig_meiosis, 'development': fig_development, 'monohybrid': fig_monohybrid,
+    'meiosis': fig_meiosis, 'pair': fig_pair, 'sister': fig_sister, 'development': fig_development, 'monohybrid': fig_monohybrid,
     'dihybrid': fig_dihybrid, 'pedigree': fig_pedigree, 'twin': fig_twin, 'coin': fig_coin,
 }
 

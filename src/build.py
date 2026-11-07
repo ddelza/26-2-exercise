@@ -70,7 +70,7 @@ def head(title, desc):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 '''
 
@@ -201,7 +201,7 @@ def figure(items):
     photos = all(f.endswith('.jpg') for f, _, _ in items)
     s = f'<div class="figs{" photos" if photos else ""}">'
     for f, alt, cap in items:
-        s += (f'<figure class="{"ph" if f.endswith(".jpg") else ""}"><a href="img/{f}" target="_blank" rel="noopener" title="크게 보기">'
+        s += (f'<figure class="{"ph" if f.endswith(".jpg") else "narrow" if f == "g_pair.svg" else ""}"><a href="img/{f}" target="_blank" rel="noopener" title="크게 보기">'
               f'<img src="img/{f}" alt="{html.escape(alt)}" width="{size(f)[0]}" height="{size(f)[1]}" loading="lazy"></a><figcaption>{html.escape(cap)}</figcaption></figure>')
     return s + '</div>'
 
@@ -223,14 +223,14 @@ def build_concepts():
             main += f'<article class="concept" id="{c["id"]}"><h3>{c["title"]}<span class="pg">교과서 {c["page"]}쪽</span></h3>'
             if c.get('points'):
                 main += '<ul>' + ''.join(f'<li>{p}</li>' for p in c['points']) + '</ul>'
+            if c.get('img'):
+                main += figure(c['img'])
             if c.get('table'):
                 t = c['table']
                 main += '<div class="tablewrap"><table class="cmp"><thead><tr>' + ''.join(f'<th scope="col">{h}</th>' for h in t['head']) + '</tr></thead><tbody>'
                 for r in t['rows']:
                     main += f'<tr><th scope="row">{r[0]}</th>' + ''.join(f'<td>{x}</td>' for x in r[1:]) + '</tr>'
                 main += '</tbody></table></div>'
-            if c.get('img'):
-                main += figure(c['img'])
             if c.get('warn'):
                 main += f'<p class="warn"><b>헷갈리지 말기</b> {c["warn"]}</p>'
             if c.get('note'):

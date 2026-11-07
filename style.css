@@ -145,6 +145,7 @@ tr:last-child > * { border-bottom: 0; }
 figure { margin: 0; }
 figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 figure.ph img { aspect-ratio: 1; object-fit: cover; }
+figure.narrow { max-width: 400px; margin: 0 auto; }
 figcaption { font-size: .85rem; color: var(--mute); margin-top: 4px; }
 .cmp th[scope=row] { background: #f4f5f7; white-space: nowrap; }
 .concept .tablewrap { margin-bottom: 8px; border-radius: 8px; }
