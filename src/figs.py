@@ -503,10 +503,61 @@ def fig_coin():
     return svg(660, 240, b)
 
 
+# ---- 12. 가계도 확률 (Tt × Tt) ---------------------------------------------
+def fig_prob():
+    b = f'<rect x="10" y="10" width="640" height="330" rx="12" fill="{PANEL}" stroke="{LINE}"/>'
+    b += t(330, 40, '혀를 말 수 있는 부모(Tt × Tt)에게서 태어날 자녀', 17, INK, weight='700')
+    x0, y0, s = 96, 92, 96
+    b += t(x0 + s, y0 - 30, '어머니의 생식세포', 13.5, R, weight='700')
+    b += t(x0 + s / 2, y0 - 10, 'T', 18, R, weight='700') + t(x0 + s * 1.5, y0 - 10, 't', 18, R, weight='700')
+    b += t(x0 - 46, y0 + s, '아버지', 13.5, B, weight='700')
+    b += t(x0 - 18, y0 + s / 2 + 6, 'T', 18, B, weight='700') + t(x0 - 18, y0 + s * 1.5 + 6, 't', 18, B, weight='700')
+    for k, (g, on) in enumerate([('TT', False), ('Tt', False), ('Tt', False), ('tt', True)]):
+        cx, cy = x0 + (k % 2) * s, y0 + (k // 2) * s
+        b += f'<rect x="{cx}" y="{cy}" width="{s}" height="{s}" fill="{"#e2e8f0" if on else "#fff"}" stroke="{MUTE}" stroke-width="1.5"/>'
+        b += person(cx + s / 2, cy + 36, 'm' if k % 2 == 0 else 'f', on, s=30) + t(cx + s / 2, cy + 82, g, 17, INK, weight='700')
+    x = 330
+    b += t(x, 112, '유전자형  TT : Tt : tt = 1 : 2 : 1', 16, INK, 'start', '700')
+    b += t(x, 150, '혀를 말 수 있음(우성) 3칸', 15.5, INK, 'start') + t(620, 150, '→ 3/4', 17, B, 'end', '700')
+    b += t(x, 184, '혀를 말 수 없음(열성) 1칸', 15.5, INK, 'start') + t(620, 184, '→ 1/4', 17, R, 'end', '700')
+    b += t(x, 232, '아이를 낳을 때마다 확률은 같다.', 15, INK, 'start', '700')
+    b += t(x, 256, '첫째가 열성(tt)이어도 둘째가', 14.5, MUTE, 'start')
+    b += t(x, 278, '열성일 확률은 그대로 1/4이다.', 14.5, MUTE, 'start')
+    b += t(330, 324, '■ ● : 혀를 말 수 없음(열성)   □ ○ : 혀를 말 수 있음(우성)', 13.5, MUTE)
+    return svg(660, 350, b)
+
+
+# ---- 13. 열성 순종과의 교배 (RrYy × rryy) -----------------------------------
+def fig_testcross():
+    gam = [('RY', 'y', False), ('Ry', 'g', False), ('rY', 'y', True), ('ry', 'g', True)]
+    b = f'<rect x="10" y="10" width="640" height="372" rx="12" fill="{PANEL}" stroke="{LINE}"/>'
+    b += t(330, 40, 'RrYy × rryy 의 결과', 17, INK, weight='700')
+    b += t(330, 64, 'RrYy는 생식세포 4종류(1 : 1 : 1 : 1), rryy는 ry 한 종류만 만든다', 14, MUTE)
+    x0, y0, s = 150, 112, 112
+    b += t(x0 - 70, y0 - 12, 'RrYy →', 15, INK, 'start', '700')
+    b += t(x0 - 70, y0 + 60, 'rryy', 15, INK, 'start', '700') + t(x0 - 70, y0 + 80, '↓ ry', 15, INK, 'start', '700')
+    for i, (g, c, w) in enumerate(gam):
+        cx = x0 + i * s
+        b += t(cx + s / 2, y0 - 12, g, 17, INK, weight='700')
+        child = g[0] + 'r' + g[1] + 'y'
+        child = ''.join(sorted(child[:2])) + ''.join(sorted(child[2:]))
+        b += f'<rect x="{cx}" y="{y0}" width="{s}" height="{s}" fill="#fff" stroke="{MUTE}" stroke-width="1.5"/>'
+        b += pea(cx + s / 2, y0 + 40, c, 20, w) + t(cx + s / 2, y0 + 88, child, 16, INK, weight='700')
+    names = ['둥글고 노란색', '둥글고 초록색', '주름지고 노란색', '주름지고 초록색']
+    for i, n in enumerate(names):
+        b += t(x0 + i * s + s / 2, y0 + s + 24, n, 13, MUTE)
+    b += t(330, 284, '표현형의 비 = 1 : 1 : 1 : 1  (각각 1/4)', 17, INK, weight='700')
+    b += t(330, 314, '모양만: Rr × rr → 둥근 : 주름진 = 1 : 1', 14.5, B, weight='700')
+    b += t(330, 338, '색만: Yy × yy → 노란색 : 초록색 = 1 : 1', 14.5, B, weight='700')
+    b += t(330, 364, '1/2 × 1/2 = 1/4 이므로 네 가지가 같은 비율로 나온다', 14, MUTE)
+    return svg(660, 392, b)
+
+
 FIGS = {
     'agar': fig_agar, 'chromosome': fig_chromosome, 'mitosis': fig_mitosis, 'homolog': fig_homolog,
     'meiosis': fig_meiosis, 'pair': fig_pair, 'sister': fig_sister, 'development': fig_development, 'monohybrid': fig_monohybrid,
     'dihybrid': fig_dihybrid, 'pedigree': fig_pedigree, 'twin': fig_twin, 'coin': fig_coin,
+    'prob': fig_prob, 'testcross': fig_testcross,
 }
 
 if __name__ == '__main__':

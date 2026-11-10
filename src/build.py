@@ -105,8 +105,8 @@ def build_index(total):
         rows += f'<tr class="grp {g["key"]}"><th colspan="2" scope="colgroup">{g["big"]}</th><td>{ccnt}</td><td>{cnt}</td></tr>'
         for m in g['mids']:
             for u in m['units']:
-                first = u['concepts'][0]['nums'][0]
-                last = u['concepts'][-1]['nums'][-1]
+                ns = [n for c in u['concepts'] for n in c['nums']]
+                first, last = ns[0], ns[-1]
                 rng = f'{first}~{last}번' if first != last else f'{first}번'
                 rows += (f'<tr><td class="mid">{m["mid"]}</td><td><a href="ox.html#{u["id"]}">{u["title"]}</a></td>'
                          f'<td>{len(u["concepts"])}</td><td>{u["n"]}<span class="rng">{rng}</span></td></tr>')
@@ -235,7 +235,7 @@ def build_concepts():
                 main += f'<p class="warn"><b>헷갈리지 말기</b> {c["warn"]}</p>'
             if c.get('note'):
                 main += f'<p class="note"><b>더 보기</b> {c["note"]}</p>'
-            main += f'<p class="rel">이 개념의 OX 문제: {nums}</p></article>'
+            main += (f'<p class="rel">이 개념의 OX 문제: {nums}</p>' if nums else '') + '</article>'
         main += '</section>'
     body = f'''<body class="kpage">
 <div class="stick" id="stick">{nav('concepts.html')}</div>
