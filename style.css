@@ -152,6 +152,13 @@ figcaption { font-size: .85rem; color: var(--mute); margin-top: 4px; }
 .warn, .note { margin: 8px 0; padding: 8px 12px; border-radius: 8px; font-size: .95rem; }
 .warn { background: var(--warn-soft); border-left: 4px solid var(--warn-line); }
 .note { background: var(--bg); border-left: 4px solid var(--line); }
+.sim { display: block; margin: 10px 0; padding: 10px 14px; border-radius: 10px; text-decoration: none;
+  background: var(--gen-soft); border: 1px solid var(--gen); }
+.sim b { color: var(--gen); }
+.sim b::before { content: '▶ '; }
+.sim b::after { content: ' ↗'; font-weight: 400; }
+.sim span { display: block; font-size: .92rem; color: var(--mute); }
+.sim:hover, .sim:focus-visible { background: #d2ece7; }
 .rel { margin: 8px 0 0; font-size: .88rem; color: var(--mute); }
 .rel a { margin-left: 4px; font-weight: 700; color: var(--star); }
 .credit { font-size: .78rem; color: var(--mute); padding-bottom: 80px; }

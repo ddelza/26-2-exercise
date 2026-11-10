@@ -94,7 +94,7 @@ def head(title, desc):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 '''
 
@@ -262,6 +262,9 @@ def build_concepts():
                 main += f'<p class="warn"><b>헷갈리지 말기</b> {c["warn"]}</p>'
             if c.get('note'):
                 main += f'<p class="note"><b>더 보기</b> {c["note"]}</p>'
+            for title, href, desc in c.get('sim', []):
+                main += (f'<a class="sim" href="{href}" target="_blank" rel="noopener"><b>{title}</b>'
+                         f'<span>{desc}</span></a>')
             main += (f'<p class="rel">이 개념의 OX 문제: {nums}</p>' if nums else '') + '</article>'
         main += '</section>'
     body = f'''<body class="kpage">
