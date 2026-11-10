@@ -56,10 +56,10 @@ def number():
     n = 0
     for u in UNITS:
         u['n'] = 0
-    for late in (False, True):
+    for late in (0, 1, 2):  # late: True(=1)은 1차 추가분, 2는 2차 추가분
         for u in UNITS:
             for c in u['concepts']:
-                if bool(c.get('late')) != late:
+                if int(c.get('late', 0)) != late:
                     continue
                 c['nums'] = []
                 for q in c['q']:
