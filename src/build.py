@@ -50,16 +50,40 @@ def copy_assets():
 
 
 def number():
+    """문항 번호를 붙인다. 학생 기록이 번호(q001 등)로 저장되므로 기존 번호는 바꾸지 않는다.
+    'late': True인 개념(나중에 추가한 문제)은 나머지를 모두 센 뒤 맨 끝 번호를 받는다."""
+    global TOTAL
     n = 0
     for u in UNITS:
         u['n'] = 0
-        for c in u['concepts']:
-            c['nums'] = []
-            for q in c['q']:
-                n += 1
-                c['nums'].append(n)
-                u['n'] += 1
+    for late in (False, True):
+        for u in UNITS:
+            for c in u['concepts']:
+                if bool(c.get('late')) != late:
+                    continue
+                c['nums'] = []
+                for q in c['q']:
+                    n += 1
+                    c['nums'].append(n)
+                    u['n'] += 1
+    TOTAL = n
     return n
+
+
+def first_late():
+    ns = [n for u in UNITS for c in u['concepts'] if c.get('late') for n in c['nums']]
+    return min(ns) if ns else None
+
+
+def ranges(ns):
+    """[79, 80, 81, 101, 102] → '79~81, 101~102번'"""
+    ns = sorted(ns)
+    parts, start = [], ns[0]
+    for a, b in zip(ns, ns[1:] + [None]):
+        if b != a + 1:
+            parts.append(f'{start}~{a}' if start != a else f'{start}')
+            start = b
+    return ', '.join(parts) + '번'
 
 
 def head(title, desc):
@@ -76,7 +100,7 @@ def head(title, desc):
 
 
 def nav(active):
-    items = [('index.html', '처음으로'), ('ox.html', 'OX 100문제'), ('concepts.html', '기본 개념')]
+    items = [('index.html', '처음으로'), ('ox.html', f'OX {TOTAL}문제'), ('concepts.html', '기본 개념')]
     links = ''.join(f'<a href="{h}"{" aria-current=page" if h == active else ""}>{t}</a>' for h, t in items)
     online = ('<span class="online" id="online" hidden><i aria-hidden="true"></i><span class="oltxt">'
               '<span>지금 <b id="onlineN">0</b>명<span class="olt"> 사용 중</span></span>'
@@ -106,11 +130,12 @@ def build_index(total):
         for m in g['mids']:
             for u in m['units']:
                 ns = [n for c in u['concepts'] for n in c['nums']]
-                first, last = ns[0], ns[-1]
-                rng = f'{first}~{last}번' if first != last else f'{first}번'
+                rng = ranges(ns)
                 rows += (f'<tr><td class="mid">{m["mid"]}</td><td><a href="ox.html#{u["id"]}">{u["title"]}</a></td>'
                          f'<td>{len(u["concepts"])}</td><td>{u["n"]}<span class="rng">{rng}</span></td></tr>')
     allc = sum(len(u['concepts']) for u in UNITS)
+    fl = first_late()
+    late_note = f' {fl}번부터는 기말 대비로 나중에 더한 문제로, 해당 소단원 끝에 있습니다.' if fl else ''
     body = f'''<body>
 <div class="stick" id="stick">{nav('index.html')}</div>
 <main class="wrap">
@@ -118,13 +143,13 @@ def build_index(total):
 <h1>기말고사 범위 개념 확인</h1>
 <p>생식과 유전, 별과 우주의 핵심 개념을 OX 문제로 확인하고, 헷갈리는 내용은 그림과 함께 다시 봅니다.</p>
 <div class="cta">
-<a class="big" href="ox.html"><b>OX 100문제 풀기</b><span>누르면 바로 정답과 풀이가 나옵니다</span></a>
+<a class="big" href="ox.html"><b>OX {total}문제 풀기</b><span>누르면 바로 정답과 풀이가 나옵니다</span></a>
 <a class="big alt" href="concepts.html"><b>기본 개념 보기</b><span>소단원별 핵심 개념 {allc}개</span></a>
 </div>
 </section>
 <section>
 <h2>문항 구성</h2>
-<p class="lead">핵심 개념마다 1~3문제를 냈고, 자주 헷갈리는 개념은 문제를 더 넣었습니다. 소단원 이름을 누르면 그 문제로 이동합니다.</p>
+<p class="lead">핵심 개념마다 1~3문제를 냈고, 자주 헷갈리는 개념은 문제를 더 넣었습니다.{late_note} 소단원 이름을 누르면 그 문제로 이동합니다.</p>
 <div class="tablewrap"><table class="plan">
 <thead><tr><th scope="col">단원</th><th scope="col">소단원</th><th scope="col">핵심 개념</th><th scope="col">문항</th></tr></thead>
 <tbody>{rows}
@@ -136,7 +161,7 @@ def build_index(total):
 <script src="app.js?v=3"></script>
 </body></html>
 '''
-    write('index.html', head('3학년 과학 개념 확인', '생식과 유전, 별과 우주 개념 확인 OX 100문제와 기본 개념') + body)
+    write('index.html', head('3학년 과학 개념 확인', f'생식과 유전, 별과 우주 개념 확인 OX {total}문제와 기본 개념') + body)
 
 
 def build_ox(total):
@@ -162,6 +187,8 @@ def build_ox(total):
 </article>
 '''
         sec += '</section>'
+    fl = first_late()
+    late_note = f' {fl}번부터는 기말 대비로 나중에 더한 문제로, 해당 소단원 끝에 있습니다.' if fl else ''
     body = f'''<body class="oxpage">
 <div class="stick" id="stick">{nav('ox.html')}
 <div class="bar"><div class="wrap barin">
@@ -174,8 +201,8 @@ def build_ox(total):
 <div class="tools"><button type="button" id="showall" aria-pressed="false">풀이 모두 보기</button><button type="button" id="reset">기록 지우기</button></div>
 </div><div class="meter"><i id="meter"></i></div></div></div>
 <main class="wrap">
-<h1>개념 확인 OX 100문제</h1>
-<p class="lead">문장이 맞으면 O, 틀리면 X를 누르세요. 푼 기록은 지금 쓰는 기기의 브라우저에만 저장됩니다.</p>
+<h1>개념 확인 OX {total}문제</h1>
+<p class="lead">문장이 맞으면 O, 틀리면 X를 누르세요. 푼 기록은 지금 쓰는 기기의 브라우저에만 저장됩니다.{late_note}</p>
 <details class="jump"><summary>소단원 바로가기</summary><div class="jgs">{jump}</div></details>
 <p class="empty" id="empty" hidden>조건에 맞는 문제가 없습니다.</p>
 {sec}
@@ -184,7 +211,7 @@ def build_ox(total):
 <script src="app.js?v=3"></script>
 </body></html>
 '''
-    write('ox.html', head('개념 확인 OX 100문제', '생식과 유전, 별과 우주 개념 확인 OX 문제') + body)
+    write('ox.html', head(f'개념 확인 OX {total}문제', '생식과 유전, 별과 우주 개념 확인 OX 문제') + body)
 
 
 def size(f):

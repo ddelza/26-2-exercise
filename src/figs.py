@@ -506,24 +506,24 @@ def fig_coin():
 # ---- 12. 가계도 확률 (Tt × Tt) ---------------------------------------------
 def fig_prob():
     b = f'<rect x="10" y="10" width="640" height="330" rx="12" fill="{PANEL}" stroke="{LINE}"/>'
-    b += t(330, 40, '혀를 말 수 있는 부모(Tt × Tt)에게서 태어날 자녀', 17, INK, weight='700')
+    b += t(330, 40, '우성 형질인 부모(Aa × Aa)에게서 태어날 자녀', 17, INK, weight='700')
     x0, y0, s = 96, 92, 96
     b += t(x0 + s, y0 - 30, '어머니의 생식세포', 13.5, R, weight='700')
-    b += t(x0 + s / 2, y0 - 10, 'T', 18, R, weight='700') + t(x0 + s * 1.5, y0 - 10, 't', 18, R, weight='700')
+    b += t(x0 + s / 2, y0 - 10, 'A', 18, R, weight='700') + t(x0 + s * 1.5, y0 - 10, 'a', 18, R, weight='700')
     b += t(x0 - 46, y0 + s, '아버지', 13.5, B, weight='700')
-    b += t(x0 - 18, y0 + s / 2 + 6, 'T', 18, B, weight='700') + t(x0 - 18, y0 + s * 1.5 + 6, 't', 18, B, weight='700')
-    for k, (g, on) in enumerate([('TT', False), ('Tt', False), ('Tt', False), ('tt', True)]):
+    b += t(x0 - 18, y0 + s / 2 + 6, 'A', 18, B, weight='700') + t(x0 - 18, y0 + s * 1.5 + 6, 'a', 18, B, weight='700')
+    for k, (g, on) in enumerate([('AA', False), ('Aa', False), ('Aa', False), ('aa', True)]):
         cx, cy = x0 + (k % 2) * s, y0 + (k // 2) * s
         b += f'<rect x="{cx}" y="{cy}" width="{s}" height="{s}" fill="{"#e2e8f0" if on else "#fff"}" stroke="{MUTE}" stroke-width="1.5"/>'
         b += person(cx + s / 2, cy + 36, 'm' if k % 2 == 0 else 'f', on, s=30) + t(cx + s / 2, cy + 82, g, 17, INK, weight='700')
     x = 330
-    b += t(x, 112, '유전자형  TT : Tt : tt = 1 : 2 : 1', 16, INK, 'start', '700')
-    b += t(x, 150, '혀를 말 수 있음(우성) 3칸', 15.5, INK, 'start') + t(620, 150, '→ 3/4', 17, B, 'end', '700')
-    b += t(x, 184, '혀를 말 수 없음(열성) 1칸', 15.5, INK, 'start') + t(620, 184, '→ 1/4', 17, R, 'end', '700')
+    b += t(x, 112, '유전자형  AA : Aa : aa = 1 : 2 : 1', 16, INK, 'start', '700')
+    b += t(x, 150, '우성 형질 3칸', 15.5, INK, 'start') + t(620, 150, '→ 3/4', 17, B, 'end', '700')
+    b += t(x, 184, '열성 형질 1칸', 15.5, INK, 'start') + t(620, 184, '→ 1/4', 17, R, 'end', '700')
     b += t(x, 232, '아이를 낳을 때마다 확률은 같다.', 15, INK, 'start', '700')
-    b += t(x, 256, '첫째가 열성(tt)이어도 둘째가', 14.5, MUTE, 'start')
+    b += t(x, 256, '첫째가 열성(aa)이어도 둘째가', 14.5, MUTE, 'start')
     b += t(x, 278, '열성일 확률은 그대로 1/4이다.', 14.5, MUTE, 'start')
-    b += t(330, 324, '■ ● : 혀를 말 수 없음(열성)   □ ○ : 혀를 말 수 있음(우성)', 13.5, MUTE)
+    b += t(330, 324, '■ ● : 열성 형질   □ ○ : 우성 형질', 13.5, MUTE)
     return svg(660, 350, b)
 
 
